@@ -1,8 +1,17 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import (
+    api_view,
+    authentication_classes,
+    permission_classes
+)
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.authtoken.models import Token
+from rest_framework.authentication import (
+    SessionAuthentication,
+    TokenAuthentication
+)
+from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from .serializers import UserSerializer
@@ -73,6 +82,22 @@ def register(request: Request) -> Response:
 
     return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
 
-@api_view(['POST'])
+@api_view(['GET'])
+@authentication_classes([SessionAuthentication, TokenAuthentication])
+@permission_classes([IsAuthenticated])
 def verify(request: Request) -> Response:
-    return Response({})
+    """
+    View function to verify if a user is authenticated.
+
+    Args:
+        request (Request): The HTTP request object.
+
+    Returns:
+        Response: The HTTP response object containing a message and user data.
+    """
+    return Response(
+        {
+            'message': 'User is authenticated',
+            'user': UserSerializer(instance=request.user).data
+        }
+    )
